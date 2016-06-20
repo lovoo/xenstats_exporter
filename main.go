@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	listenAddress = flag.String("web.listen", ":9289", "Address on which to expose metrics and web interface.")
+	listenAddress = flag.String("web.listen", ":9290", "Address on which to expose metrics and web interface.")
 	metricsPath   = flag.String("web.path", "/metrics", "Path under which to expose metrics.")
 	configFile    = flag.String("config.file", "config.yml", "Config file Path")
 	namespace     = flag.String("xen", "xenstats", "Namespace for the IPMI metrics.")
