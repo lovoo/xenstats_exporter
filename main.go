@@ -53,9 +53,9 @@ func main() {
 		http.Handle(*metricsPath, handler)
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(`<html>
-			<head><title>IPMI Exporter</title></head>
+			<head><title>Xenstats Exporter</title></head>
 			<body>
-			<h1>IPMI Exporter</h1>
+			<h1>Xenstats Exporter</h1>
 			<p><a href="` + *metricsPath + `">Metrics</a></p>
 			</body>
 			</html>`))

@@ -6,12 +6,13 @@ import (
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
+	xsclient "github.com/xenserver/go-xenserver-client"
 )
 
 // Xenstats -
 type Xenstats struct {
-	xend      *Driver
-	xenclient *XenAPIClient
+	xend      *ApiCaller
+	xenclient *xsclient.XenAPIClient
 	namespace string
 }
 
@@ -19,10 +20,7 @@ type Xenstats struct {
 func NewXenstats(config Config, namespace string) *Xenstats {
 	p := new(Xenstats)
 
-	xend := NewDriver()
-	xend.Server = config.Xenhost
-	xend.Username = config.Credentials.Username
-	xend.Password = config.Credentials.Password
+	xend := NewApiCaller(config.Xenhost, config.Credentials.Username, config.Credentials.Password)
 
 	// Need Login first if it is a fresh session
 	xenclient, err := xend.GetXenAPIClient()
@@ -37,8 +35,8 @@ func NewXenstats(config Config, namespace string) *Xenstats {
 	return p
 }
 
-// GetDriver -
-func (s Xenstats) GetDriver() *Driver {
+// GetApiCaller -
+func (s Xenstats) GetApiCaller() *ApiCaller {
 	return s.xend
 }
 

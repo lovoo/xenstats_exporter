@@ -8,66 +8,75 @@ import (
 	xsclient "github.com/xenserver/go-xenserver-client"
 )
 
-// XenAPIClient -
-type XenAPIClient struct {
-	xsclient.XenAPIClient
-}
-
-// Driver hold information about the Xenserver and the credentials
-type Driver struct {
+// ApiCaller hold information about the Xenserver and the credentials
+type ApiCaller struct {
 	Server       string
 	Username     string
 	Password     string
-	xenAPIClient *XenAPIClient
+	xenAPIClient *xsclient.XenAPIClient
 }
 
-// NewDriver Creates a new Driver
-func NewDriver() *Driver {
-	return &Driver{}
+// NewApiCaller Creates a new ApiCaller
+func NewApiCaller(host, username, password string) *ApiCaller {
+	return &ApiCaller{
+		Server:   host,
+		Username: username,
+		Password: password,
+	}
 }
 
 // ApiObject of type ..
 type ApiObject xsclient.XenAPIObject
 
 // NewXenAPIClient -
-func NewXenAPIClient(host, username, password string) (c XenAPIClient) {
-	c.Host = host
-	c.Url = "https://" + host
-	c.Username = username
-	c.Password = password
+func (d *ApiCaller) newXenAPIClient() (c xsclient.XenAPIClient, err error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
 	}
-	c.RPC, _ = xmlrpc.NewClient(c.Url, tr)
-	return
+
+	rpcClient, err := xmlrpc.NewClient("https://"+d.Server, tr)
+	if err != nil {
+		return c, err
+	}
+	return xsclient.XenAPIClient{
+		Host:     d.Server,
+		Url:      "https://" + d.Server,
+		RPC:      rpcClient,
+		Username: d.Username,
+		Password: d.Password,
+	}, err
 }
 
 // GetXenAPIClient returns
-func (d *Driver) GetXenAPIClient() (*XenAPIClient, error) {
+func (d *ApiCaller) GetXenAPIClient() (*xsclient.XenAPIClient, error) {
+	var err error
 	if d.xenAPIClient == nil {
-		c := NewXenAPIClient(d.Server, d.Username, d.Password)
+		c, err := d.newXenAPIClient()
+		if err != nil {
+			return nil, err
+		}
 		if err := c.Login(); err != nil {
 			return nil, err
 		}
 		d.xenAPIClient = &c
 	}
-	return d.xenAPIClient, nil
+	return d.xenAPIClient, err
 }
 
 // GetSpecificValue -
-func (d *Driver) GetSpecificValue(apikey string, params string) (interface{}, error) {
+func (d *ApiCaller) GetSpecificValue(apikey string, params string) (interface{}, error) {
 	result := xsclient.APIResult{}
 	err := d.xenAPIClient.APICall(&result, apikey, params)
 	if err != nil {
-		return result.Value.(interface{}), err
+		return nil, err
 	}
-	return result.Value.(interface{}), err
+	return result.Value, err
 }
 
 // GetMultiValues -
-func (d *Driver) GetMultiValues(apikey string, params ...string) (apiObjects []*ApiObject, err error) {
+func (d *ApiCaller) GetMultiValues(apikey string, params ...string) (apiObjects []*ApiObject, err error) {
 	result := xsclient.APIResult{}
 
 	if len(params) > 0 {

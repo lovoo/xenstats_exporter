@@ -7,7 +7,7 @@ COPY . $APPPATH
 
 RUN apk -U add --update -t build-deps go git mercurial
 
-RUN cd $APPPATH && go get -d && go build -o /ipmi_exporter \
+RUN cd $APPPATH && go get -d && go build -o /xenstat_exporter \
     && apk del --purge build-deps git mercurial curl file gcc libgcc libc-dev make automake autoconf libtool && rm -rf $GOPATH
 
 EXPOSE 9290
