@@ -260,7 +260,7 @@ func (s Xenstats) createStorageMetrics() (metrics []*prometheus.GaugeVec, err er
 	return metrics, err
 }
 
-func (s Xenstats) createCPUMetric(name string, help string, hostname string, unit string, value float64) (metric *prometheus.GaugeVec, err error) {
+func (s Xenstats) createCPUMetric(name string, help string, unit string, hostname string, value float64) (metric *prometheus.GaugeVec, err error) {
 	metric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: *namespace,
 		Name:      name,
