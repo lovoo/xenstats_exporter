@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
-
 	"gopkg.in/yaml.v2"
 )
 
@@ -16,7 +15,7 @@ var (
 	listenAddress = flag.String("web.listen", ":9290", "Address on which to expose metrics and web interface.")
 	metricsPath   = flag.String("web.path", "/metrics", "Path under which to expose metrics.")
 	configFile    = flag.String("config.file", "config.yml", "Config file Path")
-	namespace     = flag.String("namespace", "xenstats", "Namespace for the IPMI metrics.")
+	namespace     = flag.String("namespace", "xenstats", "Namespace for the xenexporter metrics.")
 )
 
 func readConfig() (config Config, err error) {
