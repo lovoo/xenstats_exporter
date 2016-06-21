@@ -13,14 +13,7 @@ type Exporter struct {
 	config       Config
 	metrics      []*prometheus.GaugeVec
 	totalScrapes prometheus.Counter
-	namespace    string
 	replacer     *strings.Replacer
-}
-
-type metric struct {
-	metricsname string
-	unit        string
-	value       float64
 }
 
 // Config -
@@ -36,8 +29,7 @@ type Config struct {
 // NewExporter instantiates a new ipmi Exporter.
 func NewExporter(config Config) *Exporter {
 	var e = &Exporter{
-		config:    config,
-		namespace: "xenstats",
+		config: config,
 	}
 
 	e.metrics = []*prometheus.GaugeVec{}
@@ -66,7 +58,7 @@ func (e *Exporter) Collect(metrics chan<- prometheus.Metric) {
 func (e *Exporter) collect() {
 	var err error
 
-	stats := NewXenstats(e.config, e.namespace)
+	stats := NewXenstats(e.config)
 	stats.GetApiCaller()
 
 	e.metrics, err = stats.createHostMemMetrics()

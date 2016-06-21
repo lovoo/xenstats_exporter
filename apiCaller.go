@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"net/http"
+	"net/url"
 
 	"github.com/nilshell/xmlrpc"
 	xsclient "github.com/xenserver/go-xenserver-client"
@@ -36,13 +37,16 @@ func (d *ApiCaller) newXenAPIClient() (c xsclient.XenAPIClient, err error) {
 		},
 	}
 
-	rpcClient, err := xmlrpc.NewClient("https://"+d.Server, tr)
+	url, err := url.Parse("https://" + d.Server)
 	if err != nil {
 		return c, err
 	}
+
+	rpcClient, err := xmlrpc.NewClient(url.String(), tr)
+
 	return xsclient.XenAPIClient{
 		Host:     d.Server,
-		Url:      "https://" + d.Server,
+		Url:      url.String(),
 		RPC:      rpcClient,
 		Username: d.Username,
 		Password: d.Password,
@@ -69,9 +73,6 @@ func (d *ApiCaller) GetXenAPIClient() (*xsclient.XenAPIClient, error) {
 func (d *ApiCaller) GetSpecificValue(apikey string, params string) (interface{}, error) {
 	result := xsclient.APIResult{}
 	err := d.xenAPIClient.APICall(&result, apikey, params)
-	if err != nil {
-		return nil, err
-	}
 	return result.Value, err
 }
 
