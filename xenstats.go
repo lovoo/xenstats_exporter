@@ -6,23 +6,20 @@ import (
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
+	xsclient "github.com/xenserver/go-xenserver-client"
 )
 
 // Xenstats -
 type Xenstats struct {
-	xend      *Driver
-	xenclient *XenAPIClient
-	namespace string
+	xend      *ApiCaller
+	xenclient *xsclient.XenAPIClient
 }
 
 // NewXenstats -
-func NewXenstats(config Config, namespace string) *Xenstats {
+func NewXenstats(config Config) *Xenstats {
 	p := new(Xenstats)
 
-	xend := NewDriver()
-	xend.Server = config.Xenhost
-	xend.Username = config.Credentials.Username
-	xend.Password = config.Credentials.Password
+	xend := NewApiCaller(config.Xenhost, config.Credentials.Username, config.Credentials.Password)
 
 	// Need Login first if it is a fresh session
 	xenclient, err := xend.GetXenAPIClient()
@@ -32,13 +29,12 @@ func NewXenstats(config Config, namespace string) *Xenstats {
 
 	p.xenclient = xenclient
 	p.xend = xend
-	p.namespace = namespace
 
 	return p
 }
 
-// GetDriver -
-func (s Xenstats) GetDriver() *Driver {
+// GetApiCaller -
+func (s Xenstats) GetApiCaller() *ApiCaller {
 	return s.xend
 }
 
@@ -239,30 +235,12 @@ func (s Xenstats) createStorageMetrics() (metrics []*prometheus.GaugeVec, err er
 			return metrics, err
 		}
 		metrics = append(metrics, physicalsize)
-
-		//
-		// phyutil, _ := GetSpecificValue(c, "SR.get_physical_utilisation", elem.Ref)
-		// physize, _ := GetSpecificValue(c, "SR.get_physical_size", elem.Ref)
-		//
-		// physizeint, _ := strconv.ParseInt(physize.(string), 10, 64)
-		// vallocint, _ := strconv.ParseInt(valloc.(string), 10, 64)
-		// phyutilint, _ := strconv.ParseInt(phyutil.(string), 10, 64)
-		//
-		// if physizeint > 0 {
-		// 	log.Printf("valloc: %v", valloc)
-		// 	log.Printf("phyutil: %v", phyutil)
-		// 	log.Printf("physize: %v", physize)
-		//
-		// 	free_space := physizeint - vallocint
-		// 	used_percent := 100 * phyutilint / physizeint
-		// 	log.Printf("physize: %v : percentage %v", free_space, used_percent)
-		// }
 	}
 
 	return metrics, err
 }
 
-func (s Xenstats) createCPUMetric(name string, help string, hostname string, unit string, value float64) (metric *prometheus.GaugeVec, err error) {
+func (s Xenstats) createCPUMetric(name, help, unit, hostname string, value float64) (metric *prometheus.GaugeVec, err error) {
 	metric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: *namespace,
 		Name:      name,

@@ -13,6 +13,18 @@
     go get -u github.com/lovoo/xenstats_exporter
     go install github.com/lovoo/xenstats_exporter
 
+## Config
+
+  create a yml in form of:
+
+```
+  xenhost: "xen1.fqdn.de"
+  credentials:
+    username: "root"
+    password: "password"
+```
+
+
 ## Contributing
 
 1. Fork it!
