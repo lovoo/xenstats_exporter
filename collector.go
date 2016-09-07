@@ -52,7 +52,6 @@ func (e *Exporter) Collect(metrics chan<- prometheus.Metric) {
 	for _, m := range e.metrics {
 		m.Collect(metrics)
 	}
-
 }
 
 func (e *Exporter) collect() {
@@ -83,5 +82,4 @@ func (e *Exporter) collect() {
 		log.Printf("Xen api error in creating host cpu metrics: %v", err)
 	}
 	e.metrics = append(e.metrics, cpumetrics...)
-
 }

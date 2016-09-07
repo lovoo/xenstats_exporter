@@ -227,7 +227,6 @@ func (s Xenstats) createPoolMetrics() (metrics []*prometheus.GaugeVec, err error
 	}
 
 	for _, elem := range hosts {
-
 		nameLabel, err := s.xend.GetSpecificValue("pool.get_name_label", elem.Ref)
 
 		ha_enabled, err := s.xend.GetSpecificValue("pool.get_ha_enabled", elem.Ref)
@@ -269,14 +268,11 @@ func (s Xenstats) createPoolMetrics() (metrics []*prometheus.GaugeVec, err error
 		wlbEnabledInt := Btoi(wlbEnabled.(bool))
 		wlbEnabledIntMetric, _ := s.createMetric("wlb_enabled", "true if workload balancing is enabled on the pool, false otherwise", "bool", "pool", nameLabel.(string), float64(wlbEnabledInt))
 		metrics = append(metrics, wlbEnabledIntMetric)
-
 	}
-
 	return metrics, err
 }
 
 func (s Xenstats) createStorageMetrics() (metrics []*prometheus.GaugeVec, err error) {
-
 	allstorages, err := s.xend.GetMultiValues("SR.get_all")
 	if err != nil {
 		return metrics, fmt.Errorf("XEN Api Error: %v", err)
