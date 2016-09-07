@@ -65,6 +65,13 @@ func (e *Exporter) collect() {
 	if err != nil {
 		log.Printf("Xen api error in creating host memory metrics: %v", err)
 	}
+
+	poolmetrics, err := stats.createPoolMetrics()
+	if err != nil {
+		log.Printf("Xen api error in creating ha pool metrics: %v", err)
+	}
+	e.metrics = append(e.metrics, poolmetrics...)
+
 	storagemetrics, err := stats.createStorageMetrics()
 	if err != nil {
 		log.Printf("Xen api error in creating storage metrics: %v", err)

@@ -197,6 +197,84 @@ func (s Xenstats) createStoragePhysicalSizeMetrics(storagemetrics string, labeln
 	return metric, err
 }
 
+func (s Xenstats) createMetric(name, help, unit, labelkey string, labelvalue string, value float64) (metric *prometheus.GaugeVec, err error) {
+	metric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: *namespace,
+		Name:      name,
+		Help:      help,
+		ConstLabels: map[string]string{
+			"unit": unit,
+		},
+	}, []string{labelkey})
+
+	labels := prometheus.Labels{labelkey: labelvalue}
+	metric.With(labels).Set(float64(value))
+
+	return metric, err
+}
+
+func Btoi(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
+func (s Xenstats) createPoolMetrics() (metrics []*prometheus.GaugeVec, err error) {
+	hosts, err := s.xenclient.GetPools()
+	if err != nil {
+		return metrics, fmt.Errorf("XEN Api Error: %v", err)
+	}
+
+	for _, elem := range hosts {
+
+		nameLabel, err := s.xend.GetSpecificValue("pool.get_name_label", elem.Ref)
+
+		ha_enabled, err := s.xend.GetSpecificValue("pool.get_ha_enabled", elem.Ref)
+		if err != nil {
+			return metrics, fmt.Errorf("XEN Api Error: %v", err)
+		}
+		haEnabledInt := Btoi(ha_enabled.(bool))
+		haEnabledMetric, _ := s.createMetric("pool_ha_enabled", "true if HA is enabled on the pool, false otherwise", "bool", "pool", nameLabel.(string), float64(haEnabledInt))
+		metrics = append(metrics, haEnabledMetric)
+
+		haHostFailuresToTolerate, err := s.xend.GetSpecificValue("pool.get_ha_host_failures_to_tolerate", elem.Ref)
+		if err != nil {
+			return metrics, fmt.Errorf("XEN Api Error: %v", err)
+		}
+		haHostFailuresToTolerateInt, _ := strconv.ParseInt(haHostFailuresToTolerate.(string), 10, 64)
+		haHostFailuresToTolerateMetric, _ := s.createMetric("ha_host_failures_to_tolerate", "Number of host failures to tolerate before the Pool is declared to be overcommitted", "int", "pool", nameLabel.(string), float64(haHostFailuresToTolerateInt))
+		metrics = append(metrics, haHostFailuresToTolerateMetric)
+
+		haAllowOvercommit, err := s.xend.GetSpecificValue("pool.get_ha_allow_overcommit", elem.Ref)
+		if err != nil {
+			return metrics, fmt.Errorf("XEN Api Error: %v", err)
+		}
+		haAllowOvercommitInt := Btoi(haAllowOvercommit.(bool))
+		haAllowOvercommitMetric, _ := s.createMetric("ha_allow_overcommit", "If set to false then operations which would cause the Pool to become overcommitted will be blocked.", "bool", "pool", nameLabel.(string), float64(haAllowOvercommitInt))
+		metrics = append(metrics, haAllowOvercommitMetric)
+
+		haOvercommitted, err := s.xend.GetSpecificValue("pool.get_ha_overcommitted", elem.Ref)
+		if err != nil {
+			return metrics, fmt.Errorf("XEN Api Error: %v", err)
+		}
+		haOvercommittedInt := Btoi(haOvercommitted.(bool))
+		haOvercommittedMetric, _ := s.createMetric("ha_overcommitted", "True if the Pool is considered to be overcommitted i.e. if there exist insufficient physical resources to tolerate the configured number of host failures", "bool", "pool", nameLabel.(string), float64(haOvercommittedInt))
+		metrics = append(metrics, haOvercommittedMetric)
+
+		wlbEnabled, err := s.xend.GetSpecificValue("pool.get_wlb_enabled", elem.Ref)
+		if err != nil {
+			return metrics, fmt.Errorf("XEN Api Error: %v", err)
+		}
+		wlbEnabledInt := Btoi(wlbEnabled.(bool))
+		wlbEnabledIntMetric, _ := s.createMetric("wlb_enabled", "true if workload balancing is enabled on the pool, false otherwise", "bool", "pool", nameLabel.(string), float64(wlbEnabledInt))
+		metrics = append(metrics, wlbEnabledIntMetric)
+
+	}
+
+	return metrics, err
+}
+
 func (s Xenstats) createStorageMetrics() (metrics []*prometheus.GaugeVec, err error) {
 
 	allstorages, err := s.xend.GetMultiValues("SR.get_all")

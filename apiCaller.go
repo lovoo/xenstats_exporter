@@ -73,6 +73,7 @@ func (d *ApiCaller) GetXenAPIClient() (*xsclient.XenAPIClient, error) {
 func (d *ApiCaller) GetSpecificValue(apikey string, params string) (interface{}, error) {
 	result := xsclient.APIResult{}
 	err := d.xenAPIClient.APICall(&result, apikey, params)
+
 	return result.Value, err
 }
 
