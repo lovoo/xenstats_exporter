@@ -39,7 +39,6 @@ func (s Xenstats) GetApiCaller() *ApiCaller {
 }
 
 func (s Xenstats) createHostTotalMemMetric(hostmetrics string, hostname string) (metric *prometheus.GaugeVec, err error) {
-
 	memoryTotal, err := s.xend.GetSpecificValue("host_metrics.get_memory_total", hostmetrics)
 	if err != nil {
 		return metric, fmt.Errorf("XEN Api Error: %v", err)
@@ -64,7 +63,6 @@ func (s Xenstats) createHostTotalMemMetric(hostmetrics string, hostname string) 
 }
 
 func (s Xenstats) createHostFreeMemMetric(hostmetrics string, hostname string) (metric *prometheus.GaugeVec, err error) {
-
 	memoryTotal, err := s.xend.GetSpecificValue("host_metrics.get_memory_free", hostmetrics)
 	if err != nil {
 		return metric, fmt.Errorf("XEN Api Error: %v", err)
@@ -87,7 +85,6 @@ func (s Xenstats) createHostFreeMemMetric(hostmetrics string, hostname string) (
 }
 
 func (s Xenstats) createHostMemMetrics() (metrics []*prometheus.GaugeVec, err error) {
-
 	hosts, err := s.xenclient.GetHosts()
 	if err != nil {
 		return metrics, fmt.Errorf("XEN Api Error: %v", err)
@@ -114,12 +111,6 @@ func (s Xenstats) createHostMemMetrics() (metrics []*prometheus.GaugeVec, err er
 			return metrics, err
 		}
 		metrics = append(metrics, freeMetric)
-
-		// memoryFreeInt, _ := strconv.ParseInt(memoryFree.(string), 10, 64)
-		//
-		// used_mem_percent := 100 * memoryFreeInt / memTotalInt
-		// log.Printf("used_mem_percent: %v", used_mem_percent)
-
 	}
 	return metrics, err
 }
@@ -174,7 +165,6 @@ func (s Xenstats) createStoragePhysicalUtilisationMetrics(storagemetrics string,
 }
 
 func (s Xenstats) createStoragePhysicalSizeMetrics(storagemetrics string, labelname string, defaultStorage bool) (metric *prometheus.GaugeVec, err error) {
-
 	phySize, err := s.xend.GetSpecificValue("SR.get_physical_size", storagemetrics)
 	if err != nil {
 		return metric, fmt.Errorf("XEN Api Error: %v", err)
@@ -213,7 +203,7 @@ func (s Xenstats) createMetric(name, help, unit, labelkey string, labelvalue str
 	return metric, err
 }
 
-func Btoi(b bool) int {
+func Btof(b bool) float64 {
 	if b {
 		return 1
 	}
@@ -233,7 +223,7 @@ func (s Xenstats) createPoolMetrics() (metrics []*prometheus.GaugeVec, err error
 		if err != nil {
 			return metrics, fmt.Errorf("XEN Api Error: %v", err)
 		}
-		haEnabledInt := Btoi(ha_enabled.(bool))
+		haEnabledInt := Btof(ha_enabled.(bool))
 		haEnabledMetric, _ := s.createMetric("pool_ha_enabled", "true if HA is enabled on the pool, false otherwise", "bool", "pool", nameLabel.(string), float64(haEnabledInt))
 		metrics = append(metrics, haEnabledMetric)
 
@@ -249,7 +239,7 @@ func (s Xenstats) createPoolMetrics() (metrics []*prometheus.GaugeVec, err error
 		if err != nil {
 			return metrics, fmt.Errorf("XEN Api Error: %v", err)
 		}
-		haAllowOvercommitInt := Btoi(haAllowOvercommit.(bool))
+		haAllowOvercommitInt := Btof(haAllowOvercommit.(bool))
 		haAllowOvercommitMetric, _ := s.createMetric("ha_allow_overcommit", "If set to false then operations which would cause the Pool to become overcommitted will be blocked.", "bool", "pool", nameLabel.(string), float64(haAllowOvercommitInt))
 		metrics = append(metrics, haAllowOvercommitMetric)
 
@@ -257,7 +247,7 @@ func (s Xenstats) createPoolMetrics() (metrics []*prometheus.GaugeVec, err error
 		if err != nil {
 			return metrics, fmt.Errorf("XEN Api Error: %v", err)
 		}
-		haOvercommittedInt := Btoi(haOvercommitted.(bool))
+		haOvercommittedInt := Btof(haOvercommitted.(bool))
 		haOvercommittedMetric, _ := s.createMetric("ha_overcommitted", "True if the Pool is considered to be overcommitted i.e. if there exist insufficient physical resources to tolerate the configured number of host failures", "bool", "pool", nameLabel.(string), float64(haOvercommittedInt))
 		metrics = append(metrics, haOvercommittedMetric)
 
@@ -265,7 +255,7 @@ func (s Xenstats) createPoolMetrics() (metrics []*prometheus.GaugeVec, err error
 		if err != nil {
 			return metrics, fmt.Errorf("XEN Api Error: %v", err)
 		}
-		wlbEnabledInt := Btoi(wlbEnabled.(bool))
+		wlbEnabledInt := Btof(wlbEnabled.(bool))
 		wlbEnabledIntMetric, _ := s.createMetric("wlb_enabled", "true if workload balancing is enabled on the pool, false otherwise", "bool", "pool", nameLabel.(string), float64(wlbEnabledInt))
 		metrics = append(metrics, wlbEnabledIntMetric)
 	}
@@ -363,6 +353,5 @@ func (s Xenstats) createHostCPUMetrics() (metrics []*prometheus.GaugeVec, err er
 		metrics = append(metrics, cpusFreeMetric)
 
 	}
-
 	return metrics, err
 }
