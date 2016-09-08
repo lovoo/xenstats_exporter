@@ -6,7 +6,11 @@
 
 ## Docker Usage
 
-    docker run --privileged -d --name xenstats_exporter -p 9290:9290 lovoo/xenstats_exporter:latest
+    Building:
+    docker build  --rm --force-rm --no-cache -t lovoo/xenstats_exporter .
+
+    Running:
+    docker run  -p 9290:9290 --rm  -v /path/to/config/file/:/configs lovoo/xenstats_exporter:latest  -config.file /configs/config.yml
 
 ## Building
 
