@@ -400,6 +400,14 @@ func (s Xenstats) createHostCPUMetrics() (metrics []*prometheus.GaugeVec, err er
 			usedCpus = usedCpus + vmCPUCountint
 
 		}
+
+		vmsPerHost := float64(len(vms))
+		vmsPerHostMetric, err := s.createCPUMetric("vms_per_host", "Number of vm´s on the xenhost", "number", hostname.(string), vmsPerHost)
+		if err != nil {
+			return metrics, fmt.Errorf("failure during a metric creation: %v", err)
+		}
+		metrics = append(metrics, vmsPerHostMetric)
+
 		cpusFree := int64(len(hostcpus)) - usedCpus
 		cpuUtilPercent := 100 * usedCpus / int64(len(hostcpus))
 		cpuNumMetric, err := s.createCPUMetric("cpus_host_num", "Number of cpu cores on the xenhost", "bytes", hostname.(string), float64(len(hostcpus)))
