@@ -369,6 +369,7 @@ func (s Xenstats) createHostCPUMetrics() (metrics []*prometheus.GaugeVec, err er
 	}
 	for _, elem := range hosts {
 		usedCpus := int64(0)
+		vmsPerHost := float64(0)
 		hostname, err := s.xend.GetSpecificValue("host.get_name_label", elem.Ref)
 		if err != nil {
 			return metrics, fmt.Errorf("XEN Api Error: %v", err)
@@ -383,25 +384,31 @@ func (s Xenstats) createHostCPUMetrics() (metrics []*prometheus.GaugeVec, err er
 		}
 		for _, elem2 := range vms {
 
-			vmmetrics, err := s.xend.GetSpecificValue("VM.get_metrics", elem2.Ref)
+			vmIsControllDomain, err := s.xend.GetSpecificValue("VM.get_is_control_domain", elem2.Ref)
 			if err != nil {
 				return metrics, fmt.Errorf("XEN Api Error: %v", err)
 			}
 
-			vmCPUCount, err := s.xend.GetSpecificValue("VM_metrics.get_VCPUs_number", vmmetrics.(string))
-			if err != nil {
-				return metrics, fmt.Errorf("XEN Api Error: %v", err)
-			}
-			vmCPUCountint, err := strconv.ParseInt(vmCPUCount.(string), 10, 64)
-			if err != nil {
-				return metrics, fmt.Errorf("value conversation error: %v", err)
-			}
+			if vmIsControllDomain.(bool) == false {
+				vmmetrics, err := s.xend.GetSpecificValue("VM.get_metrics", elem2.Ref)
+				if err != nil {
+					return metrics, fmt.Errorf("XEN Api Error: %v", err)
+				}
 
-			usedCpus = usedCpus + vmCPUCountint
+				vmCPUCount, err := s.xend.GetSpecificValue("VM_metrics.get_VCPUs_number", vmmetrics.(string))
+				if err != nil {
+					return metrics, fmt.Errorf("XEN Api Error: %v", err)
+				}
+				vmCPUCountint, err := strconv.ParseInt(vmCPUCount.(string), 10, 64)
+				if err != nil {
+					return metrics, fmt.Errorf("value conversation error: %v", err)
+				}
 
+				usedCpus += vmCPUCountint
+				vmsPerHost++
+			}
 		}
 
-		vmsPerHost := float64(len(vms))
 		vmsPerHostMetric, err := s.createCPUMetric("vms_per_host", "Number of vm´s on the xenhost", "number", hostname.(string), vmsPerHost)
 		if err != nil {
 			return metrics, fmt.Errorf("failure during a metric creation: %v", err)
