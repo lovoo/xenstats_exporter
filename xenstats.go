@@ -38,6 +38,11 @@ func (s Xenstats) GetApiCaller() *ApiCaller {
 	return s.xend
 }
 
+// CloseApi -
+func (s Xenstats) CloseApi() error {
+	return s.xenclient.RPC.Close()
+}
+
 func (s Xenstats) createHostTotalMemMetric(hostmetrics string, hostname string) (metric *prometheus.GaugeVec, err error) {
 	memoryTotal, err := s.xend.GetSpecificValue("host_metrics.get_memory_total", hostmetrics)
 	if err != nil {

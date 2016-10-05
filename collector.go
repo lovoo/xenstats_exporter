@@ -82,4 +82,9 @@ func (e *Exporter) collect() {
 		log.Printf("Xen api error in creating host cpu metrics: %v", err)
 	}
 	e.metrics = append(e.metrics, cpumetrics...)
+
+	err = stats.CloseApi()
+	if err != nil {
+		log.Printf("Error during connection close: %v", err)
+	}
 }
